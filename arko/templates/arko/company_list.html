@@ -1,0 +1,67 @@
+{% extends "arko/base.html" %}
+
+{% block content %}
+    <h1 class="mb-4 border-bottom pb-2">Listagem de Empresas</h1>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-funnel-fill me-2"></i>Filtrar Empresas</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="{{ filter.form.razao_social.id_for_label }}" class="form-label">{{ filter.form.razao_social.label }}</label>
+                    {{ filter.form.razao_social }}
+                </div>
+                <div class="col-md-4">
+                    <label for="{{ filter.form.natureza_juridica.id_for_label }}" class="form-label">{{ filter.form.natureza_juridica.label }}</label>
+                    {{ filter.form.natureza_juridica }}
+                </div>
+                <div class="col-md-2">
+                    <label for="{{ filter.form.porte_empresa.id_for_label }}" class="form-label">{{ filter.form.porte_empresa.label }}</label>
+                    {{ filter.form.porte_empresa }}
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 buttons-arko">Filtrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>CNPJ</th>
+                        <th>Razão Social</th>
+                        <th>Natureza Jurídica</th>
+                        <th>Porte</th>
+                        <th class="text-end">Capital Social</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for company in companies %}
+                    <tr>
+                        <td>{{ company.cnpj }}</td>
+                        <td>{{ company.razao_social }}</td>
+                        <td>{{ company.natureza_juridica }}</td>
+                        <td>{{ company.porte_empresa }}</td>
+                        <td class="text-end">R$ {{ company.capital_social|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4">Nenhuma empresa encontrada com os filtros aplicados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+      </div>
+      <div class="card-footer">
+          {% include "arko/partials/pagination.html" %}
+      </div>
+    </div>
+
+{% endblock %}

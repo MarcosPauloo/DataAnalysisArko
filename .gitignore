@@ -1,0 +1,5 @@
+# Arquivo de variáveis de ambiente
+.env
+
+# Pasta de dados
+data/

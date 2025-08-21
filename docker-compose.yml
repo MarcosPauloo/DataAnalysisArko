@@ -1,0 +1,29 @@
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ibge_postgres_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5433:5432" 
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+
+  web:
+    build: .
+    container_name: ibge_django_app
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/arko 
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - .env 
+
+volumes:
+  postgres_data:
