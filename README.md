@@ -53,15 +53,47 @@ git clone <URL_DO_SEU_REPOSITORIO_GIT>
 cd <NOME_DA_PASTA_DO_PROJETO>
 ```
 
-### 2. Configurar Variáveis de Ambiente
-O projeto utiliza um arquivo `.env` para configurar as credenciais do banco de dados e a `SECRET_KEY` do Django.
+### 2. Configuração de Variáveis de Ambiente
 
-**a.** Crie uma cópia do arquivo de exemplo:
+Este projeto usa um arquivo `.env` para gerenciar chaves secretas e configurações de ambiente, seguindo as melhores práticas de segurança para não expor dados sensíveis no código-fonte.
+
+Após clonar o repositório, siga estes passos para configurar seu ambiente:
+
+**1. Crie seu Arquivo `.env`**
+
+Copie o arquivo de exemplo `.env.example` para criar seu próprio arquivo de configuração local.
+
 ```bash
 cp .env.example .env
 ```
 
-**b.** O arquivo `.env` já virá preenchido com valores padrão para o ambiente Docker. Não é necessário alterá-lo para rodar o projeto.
+**2. Gere uma Nova `SECRET_KEY`**
+
+Cada projeto Django precisa de uma chave secreta única para segurança. O arquivo `.env` que você acabou de criar tem uma `SECRET_KEY` vazia.
+
+Gere uma nova chave executando o seguinte comando no seu terminal (requer Python 3 instalado na sua máquina):
+
+```bash
+python3 -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
+```
+
+Este comando irá imprimir uma nova chave aleatória no seu terminal. **Copie essa chave.**
+
+**3. Adicione a Chave ao Arquivo `.env`**
+
+Abra o arquivo `.env` que você criou no passo 1. Encontre a linha `SECRET_KEY=` e cole a chave que você gerou.
+
+*Antes:*
+```
+SECRET_KEY=
+```
+
+*Depois (exemplo):*
+```
+SECRET_KEY='django-insecure-a7b#c8d$e9f!g0h(i1j2k3l4m5n6o7p8q9r0s*t'
+```
+Salve e feche o arquivo. As outras variáveis (`DB_NAME`, `DB_USER`, etc.) já estão configuradas corretamente para o ambiente Docker e não precisam ser alteradas.
+
 
 ### 3. Baixar o Arquivo de Dados das Empresas
 A importação de empresas depende de um arquivo ZIP da Receita Federal.
@@ -100,7 +132,7 @@ docker-compose exec web python manage.py populate_ibge
 **b. Importar dados das Empresas (Receita Federal):**
 **Aviso:** Este processo é demorado e pode levar vários minutos, dependendo da sua máquina.
 ```bash
-docker-compose exec web python manage.py populate_companies /app/data/Empresas0.zip
+docker-compose exec web python manage.py populate_companies /arko/data/Empresas0.zip
 ```
 
 ## 🌐 Usando a Aplicação
