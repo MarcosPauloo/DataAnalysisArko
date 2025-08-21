@@ -154,4 +154,4 @@ docker-compose exec web python manage.py createsuperuser
 * Use as mesmas credenciais do superusuário para acessar a interface de administração do Django.
 
 ---
-Desenvolvido com 💙 por [Seu Nome]
+Desenvolvido por Marcos Paulo.
