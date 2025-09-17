@@ -50,7 +50,8 @@
                             <td>[[ state.id ]]</td>
                             <td>[[ state.nome ]]</td>
                             <td>[[ state.sigla ]]</td>
-                            <td>[[ state.regiao__nome ]]</td> </tr>
+                            <td>[[ state.regiao__nome ]]</td> 
+                        </tr>
                         <tr v-if="!apiData.results || apiData.results.length === 0">
                             <td colspan="4" class="text-center py-4">Nenhum estado encontrado com os filtros aplicados.</td>
                         </tr>
@@ -96,7 +97,6 @@
                     const data = await response.json();
                     
                     this.apiData = data;
-                    //this.states = data.results;
                 }catch(error){
                     console.error('Erro ao buscar dados da API:',error);
                 }finally{

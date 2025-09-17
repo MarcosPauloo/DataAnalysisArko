@@ -1,67 +1,117 @@
 {% extends "arko/base.html" %}
 
 {% block content %}
-    <h1 class="mb-4 border-bottom pb-2">Listagem de Empresas</h1>
+<div id="app">
+    <h1 class="mb-4">Listagem de Empresas (Vue.js)</h1>
 
     <div class="card shadow-sm mb-4">
         <div class="card-header">
             <h5 class="mb-0"><i class="bi bi-funnel-fill me-2"></i>Filtrar Empresas</h5>
         </div>
         <div class="card-body">
-            <form method="get" class="row g-3 align-items-end">
+            <form @submit.prevent="applyFilter" class="row g-3 align-items-end">
                 <div class="col-md-4">
-                    <label for="{{ filter.form.razao_social.id_for_label }}" class="form-label">{{ filter.form.razao_social.label }}</label>
-                    {{ filter.form.razao_social }}
+                    <label class="form-label">Razão Social</label>
+                    <input type="text" v-model="filter.razao_social" class="form-control">
                 </div>
-                <div class="col-md-4">
-                    <label for="{{ filter.form.natureza_juridica.id_for_label }}" class="form-label">{{ filter.form.natureza_juridica.label }}</label>
-                    {{ filter.form.natureza_juridica }}
+                <div class="col-md-3">
+                    <label class="form-label">Natureza Jurídica</label>
+                    <input type="text" v-model="filter.natureza_juridica" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Porte da Empresa</label>
+                    <input type="text" v-model="filter.porte_empresa" class="form-control">
                 </div>
                 <div class="col-md-2">
-                    <label for="{{ filter.form.porte_empresa.id_for_label }}" class="form-label">{{ filter.form.porte_empresa.label }}</label>
-                    {{ filter.form.porte_empresa }}
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100 buttons-arko">Filtrar</button>
+                    <button type="submit" class="btn btn-primary w-100" :disabled="isLoading">
+                        <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        [[ isLoading ? 'Buscando...' : 'Filtrar' ]]
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <div class="card shadow-sm">
-      <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>CNPJ</th>
-                        <th>Razão Social</th>
-                        <th>Natureza Jurídica</th>
-                        <th>Porte</th>
-                        <th class="text-end">Capital Social</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for company in companies %}
-                    <tr>
-                        <td>{{ company.cnpj }}</td>
-                        <td>{{ company.razao_social }}</td>
-                        <td>{{ company.natureza_juridica }}</td>
-                        <td>{{ company.porte_empresa }}</td>
-                        <td class="text-end">R$ {{ company.capital_social|floatformat:2 }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center py-4">Nenhuma empresa encontrada com os filtros aplicados.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>CNPJ</th>
+                            <th>Razão Social</th>
+                            <th>Porte</th>
+                            <th class="text-end">Capital Social</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="company in companies" :key="company.cnpj">
+                            <td>[[ company.cnpj ]]</td>
+                            <td>[[ company.razao_social ]]</td>
+                            <td>[[ company.porte_empresa ]]</td>
+                            <td class="text-end">R$ [[ formatCurrency(company.capital_social) ]]</td>
+                        </tr>
+                        <tr v-if="companies.length === 0">
+                            <td colspan="4" class="text-center py-4">Nenhuma empresa encontrada com os filtros aplicados.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-      </div>
-      <div class="card-footer">
-          {% include "arko/partials/pagination.html" %}
-      </div>
+        <div class="card-footer">
+             <p class="text-center text-muted mb-0 small" v-if="apiData.count > 0">
+                Exibindo [[ companies.length ]] de [[ apiData.count ]] resultado(s).
+            </p>
+        </div>
     </div>
+</div>
 
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script>
+    const initialData = JSON.parse('{{ data_json|escapejs }}');
+
+    const { createApp } = Vue
+
+    createApp({
+        delimiters: ['[[', ']]'],
+        data() {
+            return {
+                apiData: initialData, 
+                filter: { 
+                    razao_social: '', 
+                    natureza_juridica: '', 
+                    porte_empresa: '' 
+                },
+                isLoading: false,
+            }
+        },
+        computed: {
+            // Propriedade computada para acessar a lista de empresas de forma segura
+            companies() {
+                // Retorna a lista de resultados ou uma lista vazia se não houver dados
+                return this.apiData.results || [];
+            }
+        },
+        methods: {
+            formatCurrency(value) {
+                const number = parseFloat(value);
+                return isNaN(number) ? '0,00' : number.toFixed(2).replace('.', ',');
+            },
+            async applyFilter() {
+                this.isLoading = true;
+                const params = new URLSearchParams(this.filter);
+                const url = `{% url 'arko:company-api-list' %}?${params}`;
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    this.apiData = data; // Atualiza os dados com a resposta da API
+                } catch (error) {
+                    console.error('Erro ao buscar dados da API:', error);
+                } finally {
+                    this.isLoading = false;
+                }
+            }
+        }
+    }).mount('#app');
+</script>
 {% endblock %}
